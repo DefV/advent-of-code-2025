@@ -23,7 +23,7 @@ fn step1(input: &str, checker: fn(u64) -> bool) -> u64 {
 }
 
 fn is_double_number(number: u64) -> bool {
-    let num_digits = (number as f64).log10().floor() as u32 + 1;
+    let num_digits = number.ilog10() + 1;
     let divider = 10_u64.pow(num_digits / 2);
     let (first, last) = (number / divider, number % divider);
     first == last

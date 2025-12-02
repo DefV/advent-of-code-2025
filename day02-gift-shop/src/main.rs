@@ -34,7 +34,7 @@ fn has_recurring_digits(number: u64) -> bool {
     let len = digits.len();
 
     (1..=len / 2).any(|chunk_size| {
-        if len % chunk_size != 0 { return false; }
+        if !len.is_multiple_of(chunk_size) { return false; }
 
         let first = &digits[..chunk_size];
         (chunk_size..len).step_by(chunk_size).all(|i| &digits[i..i+chunk_size] == first)

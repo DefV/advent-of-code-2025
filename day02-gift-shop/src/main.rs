@@ -1,22 +1,18 @@
 fn main() {
     let input = aoc::input();
-    step1(&input);
+
+    println!("Step 1:{}", step1(&input, is_double_number));
+    println!("Step 2:{}", step1(&input, has_recurring_digits));
 }
 
-fn step1(input: &str) {
-    let result = input
+fn step1(input: &str, checker: fn(u64) -> bool) -> u64 {
+    input
         .split(',')
         .filter_map(|range_str| range_str.split_once('-'))
         .flat_map(|(start, stop)| {
-            doubles_in_range(start.parse::<u64>().unwrap(), stop.parse::<u64>().unwrap())
+            (start.parse::<u64>().unwrap()..=stop.parse::<u64>().unwrap()).filter(|&x| checker(x))
         })
-        .sum::<u64>();
-
-    println!("Step 1:{}", result);
-}
-
-fn doubles_in_range(start: u64, end: u64) -> Vec<u64> {
-    (start..=end).filter(|&x| is_double_number(x)).collect()
+        .sum::<u64>()
 }
 
 fn is_double_number(number: u64) -> bool {
@@ -24,6 +20,14 @@ fn is_double_number(number: u64) -> bool {
     let divider = 10_u64.pow(num_digits / 2);
     let (first, last) = (number / divider, number % divider);
     first == last
+}
+
+fn has_recurring_digits(number: u64) -> bool {
+    let n: Vec<char> = number.to_string().chars().collect();
+    (1..=(n.len() / 2)).into_iter().any(|i| {
+        let chunks: Vec<&[char]> = n.chunks(i).collect();
+        chunks.windows(2).all(|w| w[0] == w[1])
+    })
 }
 
 #[cfg(test)]
@@ -40,8 +44,11 @@ mod tests {
     }
 
     #[test]
-    fn test_doubles_in_range() {
-        assert_eq!(doubles_in_range(11, 22), vec![11, 22]);
-        assert_eq!(doubles_in_range(95, 115), vec![99]);
+    fn test_has_recurring_digits() {
+        assert!(has_recurring_digits(1212));
+        assert!(has_recurring_digits(11));
+        assert!(has_recurring_digits(111));
+        assert!(has_recurring_digits(824824824));
+        assert!(has_recurring_digits(1188511885));
     }
 }

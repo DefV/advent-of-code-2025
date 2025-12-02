@@ -1,8 +1,15 @@
+use std::time::Instant;
+
 fn main() {
     let input = aoc::input();
 
+    let start = Instant::now();
     println!("Step 1:{}", step1(&input, is_double_number));
+    println!("Time: {:?}", start.elapsed());
+
+    let start = Instant::now();
     println!("Step 2:{}", step1(&input, has_recurring_digits));
+    println!("Time: {:?}", start.elapsed());
 }
 
 fn step1(input: &str, checker: fn(u64) -> bool) -> u64 {
@@ -23,10 +30,14 @@ fn is_double_number(number: u64) -> bool {
 }
 
 fn has_recurring_digits(number: u64) -> bool {
-    let n: Vec<char> = number.to_string().chars().collect();
-    (1..=(n.len() / 2)).into_iter().any(|i| {
-        let chunks: Vec<&[char]> = n.chunks(i).collect();
-        chunks.windows(2).all(|w| w[0] == w[1])
+    let digits = number.to_string();
+    let len = digits.len();
+
+    (1..=len / 2).any(|chunk_size| {
+        if len % chunk_size != 0 { return false; }
+
+        let first = &digits[..chunk_size];
+        (chunk_size..len).step_by(chunk_size).all(|i| &digits[i..i+chunk_size] == first)
     })
 }
 

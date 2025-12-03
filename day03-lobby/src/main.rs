@@ -1,23 +1,31 @@
-use std::str;
-
 fn main() {
     let input = aoc::input();
 
-    part1(&input);
-}
-fn part1(input: &str) {
-    let result = input.lines()
-                    .map(|line| line.chars().filter_map(|c| c.to_digit(10)).collect::<Vec<u32>>() )
-                    .fold(0, |acc, line| acc + max_joltage(&line));
-
-    println!("Result: {}", result);
+    println!("Part 1: {}", solve(&input, 2));
+    println!("Part 2: {}", solve(&input, 12));
 }
 
-fn max_joltage(line: &[u32]) -> u32 {
-    let (max_index, decimal) = find_max_index(&line[..line.len() - 1]);
-    let (_, unit) = find_max_index(&line[max_index + 1..]);
+fn solve(input: &str, number_of_batteries: usize) -> u64 {
+    input
+        .lines()
+        .map(|line| {
+            line.chars()
+                .filter_map(|c| c.to_digit(10))
+                .collect::<Vec<u32>>()
+        })
+        .fold(0, |acc, line| acc + max_joltage(&line, number_of_batteries))
+}
 
-    decimal * 10 + *unit
+fn max_joltage(line: &[u32], number_of_batteries: usize) -> u64 {
+    let mut start = 0;
+    let mut result = 0;
+    for i in 1..=number_of_batteries {
+        let (idx, &num) = find_max_index(&line[start..line.len() - number_of_batteries + i]);
+        start += idx + 1;
+        result = result * 10 + u64::from(num);
+    }
+
+    result
 }
 
 fn find_max_index(line: &[u32]) -> (usize, &u32) {
@@ -34,9 +42,13 @@ mod tests {
     #[test]
     fn test_max_joltage() {
         assert_eq!(
-            max_joltage(&[9, 8, 7, 6, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1]),
+            max_joltage(&[9, 8, 7, 6, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1], 2),
             98
         );
-        assert_eq!(max_joltage(&[8, 1, 1, 1, 1, 1, 9]), 89);
+        assert_eq!(max_joltage(&[8, 1, 1, 1, 1, 1, 9], 2), 89);
+        assert_eq!(
+            max_joltage(&[9, 8, 7, 6, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1], 12),
+            987654321111
+        );
     }
 }

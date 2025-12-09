@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet, VecDeque};
-#[derive(Debug, Eq, Hash, PartialEq)]
+use std::fmt::{self, Debug};
+#[derive(Eq, Hash, PartialEq)]
 struct Point {
     x: usize,
     y: usize,
@@ -17,6 +18,12 @@ impl From<&str> for Point {
     }
 }
 
+impl Debug for Point {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{},{},{}", self.x, self.y, self.z)
+    }
+}
+
 impl Point {
     fn euclidean_distance(&self, other: &Point) -> f64 {
         let us = [self.x, self.y, self.z];
@@ -30,13 +37,14 @@ impl Point {
 
 fn main() {
     let input = aoc::input();
-    let result = part1(&input, std::env::args().nth(2).unwrap().parse().unwrap());
+    let n = std::env::args().nth(2).unwrap().parse().unwrap();
+    let result = part1(&input, n);
     println!("Result: {}", result);
+    let result2 = part2(&input, n);
+    println!("Result 2: {}", result2);
 }
 
-fn part1(input: &str, n: usize) -> usize {
-    let points: Vec<Point> = input.lines().map(|line| line.into()).collect();
-
+fn distance_pairs(points: &[Point]) -> Vec<(f64, &Point, &Point)> {
     let mut pairs: Vec<(f64, &Point, &Point)> = points
         .iter()
         .enumerate()
@@ -49,9 +57,13 @@ fn part1(input: &str, n: usize) -> usize {
         .collect();
 
     pairs.sort_by(|a, b| a.0.total_cmp(&b.0));
+    pairs
+}
+
+fn size_of_networks(pairs: &[(f64, &Point, &Point)]) -> Vec<usize> {
 
     let mut graph: HashMap<&Point, Vec<&Point>> = HashMap::new();
-    for (_, p, q) in pairs[..n].into_iter() {
+    for (_, p, q) in pairs.iter() {
         graph.entry(p).or_default().push(q);
         graph.entry(q).or_default().push(p);
     }
@@ -83,6 +95,30 @@ fn part1(input: &str, n: usize) -> usize {
     }
 
     sizes.sort_unstable();
+    sizes
+}
+    
+fn part1(input: &str, n: usize) -> usize {
+    let points: Vec<Point> = input.lines().map(|line| line.into()).collect();
 
+    let pairs = distance_pairs(&points);
+    let sizes = size_of_networks(&pairs[..n]);
     sizes.iter().rev().take(3).product()
+}
+
+fn part2(input: &str, n: usize) -> usize {
+    let points: Vec<Point> = input.lines().map(|line| line.into()).collect();
+
+    let pairs = distance_pairs(&points);
+
+    for i in n..pairs.len() {
+        let sizes = size_of_networks(&pairs[..i]);
+        if sizes.first() == Some(&points.len()) {
+            let closing_pair = &pairs[i-1];
+            
+            return closing_pair.1.x * closing_pair.2.x
+        }
+    }
+
+    unreachable!();
 }
